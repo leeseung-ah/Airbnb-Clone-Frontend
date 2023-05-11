@@ -1,4 +1,4 @@
-import { Box, Grid, Image, VStack, Heading, Text, HStack, Button, useColorModeValue, Skeleton, SkeletonText, Link } from "@chakra-ui/react";
+import { Box, Grid, Image, VStack, Heading, Text, HStack, Button, useColorModeValue, Skeleton, SkeletonText, Link, useEditable } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import RoomSkeleton from "../components/RoomSkeleton";
@@ -24,6 +24,9 @@ interface IRoom {
 
 export default function Home() {
     const { isLoading, data } = useQuery<IRoom[]>(["rooms"], getRooms);
+    useEffect (() => {
+        console.log("hello");
+    }, [])
     return (
     <Grid 
         mt={10} 
