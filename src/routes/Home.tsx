@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import RoomSkeleton from "../components/RoomSkeleton";
 import Room from "../components/Room";
 import { getRooms } from "../api";
+import { Helmet } from "react-helmet";
 
 interface IPhoto {
     pk: string;
@@ -58,6 +59,7 @@ export default function Home() {
         <Room
             key={room.pk}
             pk={room.pk}
+            isOwner={room.is_owner}
             imageUrl={room.photos[0]?.file}
             name={room.name} 
             rating={room.rating}

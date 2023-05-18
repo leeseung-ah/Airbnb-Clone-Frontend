@@ -26,7 +26,7 @@ export interface IRoomPhotoPhoto {
     name: string;
     description: string;
   }
-  
+
   export interface ICategory {
     pk: number;
     name: string;

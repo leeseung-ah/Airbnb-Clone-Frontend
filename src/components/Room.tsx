@@ -1,6 +1,6 @@
 import { Box, Button, Grid, VStack, Text, HStack, Image, useColorModeValue } from "@chakra-ui/react";
-import { FaRegHeart, FaStar } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { FaCamera, FaRegHeart, FaStar } from "react-icons/fa";
+import { Link, useNavigate } from "react-router-dom";
 
 interface IRoomProps {
     imageUrl:string;
@@ -10,17 +10,23 @@ interface IRoomProps {
     country:string;
     price:number;
     pk: number;
+    isOwner: boolean;
 }
 
-export default function Room({ pk, imageUrl, name, rating, city, country, price }: IRoomProps){
+export default function Room({ pk, imageUrl, name, rating, city, country, price, isOwner }: IRoomProps){
     const gray= useColorModeValue("gray.600", "gray.300")
+    const navigate =useNavigate();
+    const onCameraClick = (event:React.SyntheticEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        navigate(`/rooms/${pk}/photos`);
+    }
     return(
         <Link to={`/rooms/${pk}`}>
             <VStack alignItems={"flex-start"}>
         <Box position="relative" overflow={"hidden"} mb={3} rounded="3xl">
             <Image minH="280" src={imageUrl}/>
-            <Button variant={"unstyled"} cursor={"pointer"} position="absolute" top={0} right={0} color="white">
-                <FaRegHeart size="20px"/>
+            <Button variant={"unstyled"} cursor={"pointer"} position="absolute" top={0} right={0} color="white" onClick={onCameraClick}>
+                {isOwner ? <FaCamera size="20px"/> : <FaRegHeart size="20px"/>}
             </Button>
         </Box>
         <Box>
@@ -28,10 +34,7 @@ export default function Room({ pk, imageUrl, name, rating, city, country, price 
                 <Text display={"block"} as="b" noOfLines={1} fontSize="md">
                     {name}
                 </Text>
-                <HStack 
-                    _hover={{
-                        color: "red.100",
-                    }} 
+                <HStack
                     spacing={1}
                     alignItems="center"
                 >
