@@ -24,7 +24,7 @@ export default function Room({ pk, imageUrl, name, rating, city, country, price,
         <Link to={`/rooms/${pk}`}>
             <VStack alignItems={"flex-start"}>
         <Box position="relative" overflow={"hidden"} mb={3} rounded="3xl">
-            <Image minH="280" src={imageUrl}/>
+            <Image objectFit={"cover"} minH="280" src={imageUrl}/>
             <Button variant={"unstyled"} cursor={"pointer"} position="absolute" top={0} right={0} color="white" onClick={onCameraClick}>
                 {isOwner ? <FaCamera size="20px"/> : <FaRegHeart size="20px"/>}
             </Button>

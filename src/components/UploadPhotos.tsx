@@ -15,6 +15,7 @@ import useHostOnlyPage from "../components/HostOnlyPage";
 import ProtectedPage from "../components/ProtectedPage";
 import { useMutation } from "@tanstack/react-query";
 import { createPhoto, getUploadURL, uploadImage } from "../api";
+import HostOnlyPage from "../components/HostOnlyPage";
 
 interface IForm {
     file:FileList;
@@ -59,32 +60,30 @@ export default function UploadPhotos() {
             })
         },
     });
-    useHostOnlyPage();
-    const onSubmit = (data:any) => {
-        uploadURLMutation.mutate()
-    };
     return (
         <ProtectedPage>
-            <Box
-                pb={40}
-                mt={10}
-                px={{
-                base: 10,
-                lg: 40,
-                }}
-            >
-                <Container>
-                    <Heading textAlign={"center"}>Upload a Photo</Heading>
-                    <VStack as="form" onSubmit={handleSubmit(onSubmit)} spacing={5} mt={10}>
-                        <FormControl>
-                            <Input {...register("file")} type="file" accept="image/*" />
-                        </FormControl>
-                        <Button isLoading={createPhotoMutation.isLoading || uploadImageMutation.isLoading || uploadURLMutation.isLoading} type="submit" w="full" colorScheme={"red"}>
-                            Upload photos
-                        </Button>
-                    </VStack>
-                </Container>
-            </Box>
+            <HostOnlyPage>
+                <Box
+                    pb={40}
+                    mt={10}
+                    px={{
+                    base: 10,
+                    lg: 40,
+                    }}
+                >
+                    <Container>
+                        <Heading textAlign={"center"}>Upload a Photo</Heading>
+                        <VStack as="form" spacing={5} mt={10}>
+                            <FormControl>
+                                <Input {...register("file")} type="file" accept="image/*" />
+                            </FormControl>
+                            <Button isLoading={createPhotoMutation.isLoading || uploadImageMutation.isLoading || uploadURLMutation.isLoading} type="submit" w="full" colorScheme={"red"}>
+                                Upload photos
+                            </Button>
+                        </VStack>
+                    </Container>
+                </Box>
+            </HostOnlyPage>
         </ProtectedPage>
         );
     }

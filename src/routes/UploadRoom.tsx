@@ -25,12 +25,12 @@ export default function UploadRoom(){
     });
     const {data:amenities, isLoading:isAmenitiesLoading} = useQuery<IAmenity[]>(["amenities"], getAmenities);
     const {data:categories, isLoading:isCategoriesLoading} = useQuery<ICategory[]>(["categories"], getCategories);
-    useHostOnlyPage();
     const onSubmit = (data:IUploadRoomVariables) => {
         mutations.mutate(data);
     };
     return (
     <ProtectedPage>
+        <HostOnlyPage>
         <Box pb={40} mt={10} px={{
             base: 10,
             lg: 40,
@@ -116,6 +116,7 @@ export default function UploadRoom(){
             </VStack> 
         </Container>
         </Box>
+        </HostOnlyPage>
     </ProtectedPage>
     );
 }

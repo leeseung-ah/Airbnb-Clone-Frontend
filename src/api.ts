@@ -55,6 +55,25 @@ export const kakaoLogin = (code:string) =>
   )
   .then((response) => response.status);
 
+export interface naverLoginVariables {
+    code: string;
+    state: string | null;
+  }
+  
+export const naverLogIn = ({ code, state }: naverLoginVariables) =>
+  instance
+    .post(
+      `users/naver`,
+      { code, state },
+      {
+        headers: {
+          "X-CSRFToken": Cookie.get("csrftoken") || "",
+        },
+      }
+    )
+    .then((response) => response.status);
+  
+
 
 export interface IUsernameLoginVariables{
   username:string;
@@ -137,6 +156,10 @@ export interface IUploadRoomVariables {
   category: number;
 }
 
+export interface IUploadError {
+  response: { data: { error: string } };
+}
+
 export const uploadRoom = (variables:IUploadRoomVariables) => 
   instance.post(`rooms/`, variables, 
   {
@@ -203,3 +226,28 @@ export const createPhoto = ({description, file, roomPk }: ICreatePhotoVariables)
     }
   )
   .then(response => response.data);
+
+export interface IEditRoomVariables {
+  roomPk: string;
+  name: string;
+  country: string;
+  city: string;
+  price: number;
+  rooms: number;
+  toilets: number;
+  description: string;
+  address: string;
+  pet_friendly: boolean;
+  kind: string;
+  amenities: number[];
+  category: number;
+}
+
+export const editRoom = (variables: IEditRoomVariables) =>
+  instance
+    .put(`rooms/${variables.roomPk}`, variables, {
+      headers: {
+        "X-CSRFToken": Cookie.get("csrftoken") || "",
+      },
+    })
+    .then((response) => response.data)
