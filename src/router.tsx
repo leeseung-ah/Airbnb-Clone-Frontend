@@ -3,6 +3,7 @@ import Root from "./components/Root";
 import Home from "./routes/Home";
 import NotFound from "./routes/NotFound";
 import RoomDetail from "./routes/RoomDetail";
+import RoomReservation from "./routes/RoomReservation";
 import GithubConfirm from "./routes/GithubConfirm";
 import KakaoConfirm from "./routes/KakaoConfirm";
 import UploadRoom from "./routes/UploadRoom";
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
             {
                 path:"rooms/:roomPk/photos",
                 element: <UploadPhotos />,
+            },
+            {
+                path:"rooms/:roomPk/reservations",
+                element: <RoomReservation />,
             },
             {
                 path: "social",

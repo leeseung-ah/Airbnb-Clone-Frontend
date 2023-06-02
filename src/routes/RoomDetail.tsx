@@ -1,13 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";  // css import
-import { checkBooking, getRoom, getRoomReviews } from "../api";
+import { IReserveBooking, IReserveError, IReserveSuccess, checkBooking, getRoom, getRoomReviews, reserveBooking } from "../api";
 import { IReview, IRoomDetail } from "../types";
-import { Box, Grid, Heading, Skeleton, Image, GridItem, VStack, HStack, Text, Avatar, Container, Button } from "@chakra-ui/react";
-import { FaPencilAlt, FaStar } from "react-icons/fa";
+import { Box, Grid, Heading, Skeleton, Image, GridItem, VStack, HStack, Text, Avatar, Container, Button, useToast, Divider, InputGroup, InputLeftAddon, Input, FormControl, FormLabel, Toast } from "@chakra-ui/react";
+import { FaPencilAlt, FaStar, FaUserFriends } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
+import { useForm } from "react-hook-form";
 
 export default function RoomDetail() {
     const { roomPk } = useParams();
@@ -15,18 +16,48 @@ export default function RoomDetail() {
     getRoom);
     const { data:reviewsData, isLoading: isReviewsLoading } = useQuery<IReview[]>([`rooms`, roomPk, `reviews`], getRoomReviews)
     const [dates, setDates] = useState<Date[] | undefined>();
-    const handleDateChange = (value: any) => {
-        setDates(value);
-    };
-    const {data:checkBookingData, isLoading:isCheckingBooking} = useQuery(
-        ["check", roomPk, dates],
-        checkBooking, 
+    const {
+        data:checkBookingData, 
+        isLoading:isCheckingBooking,
+        refetch,
+    } = useQuery(["check", roomPk, dates], checkBooking, 
         {
             cacheTime:0,
             enabled: dates !== undefined,
         }
     );
-    console.log(data, isCheckingBooking);
+    const handleDateChange = (value: any) => {
+        setDates(value);
+    }
+    const toast = useToast();
+    const mutation = useMutation<IReserveSuccess, IReserveError, IReserveBooking>
+    (
+        reserveBooking,
+        {
+            onSuccess: (data) => {
+            refetch();
+            toast({
+                position: "top",
+                status: "success",
+                title: "Reserved room",
+                description: `room: ${data.room}, check in: ${data.check_in} check out: ${data.check_out}`,
+            });
+        },
+            onError: (error) => console.log(error),
+        }
+    );
+    interface IGuest {
+        guests: number;
+    }
+    const { register, watch, handleSubmit } = useForm<IGuest>();
+
+    const onReservationSubmit = (data: IGuest) =>{
+        if (dates && roomPk) {
+            const guests = data.guests;
+            console.log(guests);
+            mutation.mutate({ dates, roomPk, guests});
+        }
+    };
     return (
         <Box
             mt={10}
@@ -51,7 +82,7 @@ export default function RoomDetail() {
         ) : null}
         </HStack>
             <Grid 
-                mt={8}
+                mt={5}
                 rounded="xl"
                 overflow={"hidden"}
                 gap={2}
@@ -96,20 +127,17 @@ export default function RoomDetail() {
                                 </HStack>
                             </Skeleton>
                         </VStack>
-                        <Avatar name={data?.owner.name} size={"xl"} src={data?.owner.avatar}/>
+                        <Avatar name={data?.owner.name} overflow={"hidden"} size={"xl"} src={data?.owner.avatar}/>
                         </HStack>
-                        <Box mt={10}>
-                            <Heading mb={5} fontSize={"2xl"}>
-                                <HStack>
-                                    <FaStar /> <Text>{data?.rating}</Text>
-                                    <Text>·</Text>
-                                    <Text>
-                                        {reviewsData?.length} review{reviewsData?.length === 1 ? "":"s"}
-                                    </Text>
-                                </HStack>
-                            </Heading>
-                            <Container mt={15} maxW="container.lg" marginX="none">
-                                <Grid gap={8} templateColumns={"1fr 1fr"}>
+                        <Divider mt={10} mb={10} />
+                        <Skeleton isLoaded={!isLoading} w="50%">
+                            <HStack mb="10">
+                                <FaStar /> <Heading>{data?.rating}</Heading>
+                                    <Heading>·</Heading>
+                                    <Heading>{reviewsData?.length} review{reviewsData?.length === 1 ? "":"s"}</Heading>
+                            </HStack>
+                        </Skeleton>
+                                <Grid rowGap={10} columnGap={20} templateColumns={"1fr 1fr"}>
                                     {reviewsData?.map((review, index) => 
                                         <VStack alignItems={"flex-start"} key={index}>
                                             <HStack>
@@ -130,8 +158,6 @@ export default function RoomDetail() {
                                             </VStack>
                                             )}
                                         </Grid>
-                                        </Container>
-                                    </Box>
                                 </Box>
                                 <Box pt={10}>
                                     <Calendar
@@ -142,16 +168,36 @@ export default function RoomDetail() {
                                         minDate={new Date()} 
                                         maxDate={new Date(Date.now() + 60*60*24*7*4*6*1000)} 
                                         selectRange
-                                    />    
-                                    <Button 
-                                        disabled={!checkBookingData?.ok}
-                                        isLoading={isCheckingBooking && dates !== undefined} 
-                                        my={5} 
-                                        w="100%" 
-                                        colorScheme={"red"}
-                                    >
-                                        Make booking
-                                    </Button>
+                                    />
+                                    <VStack as="form" onSubmit={handleSubmit(onReservationSubmit)}>
+                                        <FormControl>
+                                            <FormLabel mt={4}>Guests</FormLabel>
+                                            <InputGroup>
+                                                <InputLeftAddon children={<FaUserFriends />} />
+                                                <Input 
+                                                    {...register("guests", { required: true})}
+                                                    required
+                                                    type="number"
+                                                    min={0}
+                                                />
+                                                </InputGroup>
+                                        </FormControl>
+                                        <Button
+                                            type="submit"
+                                            my={5}
+                                            w="100%"
+                                            colorScheme={"red"}
+                                            isLoading={isCheckingBooking}
+                                            isDisabled={!checkBookingData?.ok && Boolean(dates)}
+                                            >
+                                            Make booking
+                                        </Button>
+                                    </VStack>
+                                    <Link to={`/rooms/${roomPk}/reservations`}>
+                                        <Button colorScheme={"pink"} mt="5" w="100%">
+                                            {data?.is_owner ? "방 예약 현황" : "나의 예약 현황"}
+                                        </Button>
+                                    </Link>
                                     {!isCheckingBooking && !checkBookingData?.ok ? (
                                     <Text color="red.500">
                                         Cant' book on those dates, sorry.</Text>

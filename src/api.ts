@@ -3,6 +3,7 @@ import axios from "axios";
 import Cookie from "js-cookie";
 import { formatDate } from "./lib/utils";
 
+
 const instance = axios.create({
     baseURL: "http://127.0.0.1:8000/api/v1/",
     withCredentials: true,
@@ -251,3 +252,65 @@ export const editRoom = (variables: IEditRoomVariables) =>
       },
     })
     .then((response) => response.data)
+
+export interface IReserveBooking {
+  dates: Date[];
+  roomPk: string;
+  guests: number;
+}
+    
+export interface IReserveSuccess {
+  pk: string;
+  room: string;
+  check_in: string;
+  check_out: string;
+  experience_time: string;
+  guests: number;
+}
+    
+export interface IReserveError {
+  check_in: string[];
+  check_out: string[];
+  guests: string[];
+}
+    
+export const reserveBooking = ({ dates, roomPk, guests }: IReserveBooking) => {
+  const [firstDate, secondDate] = dates;
+  const checkIn = formatDate(firstDate);
+  const checkOut = formatDate(secondDate);
+  const data = { check_in: checkIn, check_out: checkOut, guests: guests };
+    
+  return instance
+    .post(`rooms/${roomPk}/bookings`, data, {
+      headers: {
+        "X-CSRFToken": Cookie.get("csrftoken") || "",
+      },
+    })
+    .then((response) => response.data);
+  };
+
+interface IFormData {
+    year: number;
+    month: number;
+}
+
+export type GetReservationQueryKey = [
+  string,
+  string?,
+  {
+    year: number;
+    month: number;
+  }?
+];
+
+export const getReservation = ({
+  queryKey,
+}: QueryFunctionContext<GetReservationQueryKey>) => {
+  const [_, roomPk, formData] = queryKey;
+  const year = formData?.year;
+  const month = formData?.month;
+  return instance
+  .get(`rooms/${roomPk}/bookings?year=${year}&month=${month}`)
+  .then((response) => response.data);
+};
+
